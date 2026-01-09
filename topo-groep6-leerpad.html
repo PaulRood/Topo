@@ -1,0 +1,1034 @@
+<!doctype html>
+<html lang="nl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Topografie – Leerpad (Groep 6)</title>
+  <style>
+    :root{
+      --bg:#0b1220; --panel:#111b2e; --panel2:#0f172a; --txt:#e6eefc; --muted:#a8b3c9;
+      --good:#22c55e; --bad:#ef4444; --warn:#f59e0b; --line:#22304d;
+      --btn:#1a2a49; --btn2:#24385f; --accent:#35507f;
+      --mapFill:#0e1a33; --mapStroke:#2b3f66;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;
+      background:linear-gradient(180deg,var(--bg),#070b14);
+      color:var(--txt);
+    }
+    .wrap{max-width:1100px; margin:0 auto; padding:18px}
+    h1{font-size:22px; margin:0 0 8px 0}
+    .sub{color:var(--muted); margin:0 0 16px 0; font-size:14px; line-height:1.4}
+    .grid{display:grid; grid-template-columns: 1.15fr 0.85fr; gap:14px}
+    @media (max-width: 900px){ .grid{grid-template-columns:1fr} }
+
+    .card{
+      background:rgba(17,27,46,.9);
+      border:1px solid var(--line);
+      border-radius:16px;
+      padding:14px;
+      box-shadow: 0 10px 30px rgba(0,0,0,.25);
+    }
+    .row{display:flex; gap:10px; flex-wrap:wrap; align-items:center}
+    .tabs{display:flex; gap:8px; flex-wrap:wrap}
+    .tab{
+      border:1px solid var(--line); background:var(--btn);
+      color:var(--txt); padding:10px 12px; border-radius:12px;
+      cursor:pointer; font-weight:800; font-size:14px;
+    }
+    .tab.active{background:var(--btn2); border-color:var(--accent)}
+    .pill{
+      display:inline-flex; align-items:center; gap:8px;
+      padding:8px 10px; border-radius:999px;
+      border:1px solid var(--line); background:rgba(15,23,42,.7);
+      font-size:13px; color:var(--muted);
+    }
+    .dot{width:10px; height:10px; border-radius:50%}
+    .dot.good{background:var(--good)}
+    .dot.bad{background:var(--bad)}
+    .dot.neu{background:#94a3b8}
+
+    .prompt{font-size:18px; font-weight:950; margin:10px 0 4px 0}
+    .hint{color:var(--muted); font-size:13px; margin:0 0 10px 0}
+    .feedback{
+      margin-top:10px; padding:10px 12px; border-radius:12px;
+      border:1px dashed var(--line); background:rgba(15,23,42,.55);
+      min-height:44px;
+      white-space:pre-wrap;
+    }
+    .feedback.good{border-color: rgba(34,197,94,.55)}
+    .feedback.bad{border-color: rgba(239,68,68,.55)}
+
+    .btnrow{display:flex; gap:10px; flex-wrap:wrap; margin-top:12px}
+    button{
+      border:1px solid var(--line); background:var(--btn);
+      color:var(--txt); padding:10px 12px; border-radius:12px;
+      cursor:pointer; font-weight:900;
+    }
+    button:hover{background:var(--btn2)}
+    button.primary{border-color:var(--accent)}
+    button.danger{border-color: rgba(239,68,68,.45)}
+    button.ghost{background:transparent}
+
+    .scorebox{display:grid; gap:10px}
+    .bigscore{
+      border:1px solid var(--line);
+      border-radius:16px; padding:12px;
+      background:rgba(15,23,42,.7);
+    }
+    .bigscore .n{font-size:34px; font-weight:950; letter-spacing:.2px}
+    .bigscore .t{color:var(--muted); font-size:13px; margin-top:2px}
+
+    .list{
+      margin:12px 0 0 0; padding:0; list-style:none;
+      max-height:360px; overflow:auto;
+      border:1px solid var(--line);
+      border-radius:16px;
+      background:rgba(15,23,42,.55);
+    }
+    .list li{
+      padding:10px 12px; border-bottom:1px solid rgba(34,48,77,.7);
+      display:flex; justify-content:space-between; gap:10px;
+      font-size:14px;
+    }
+    .list li:last-child{border-bottom:none}
+    .small{font-size:12px; color:var(--muted)}
+    .badge{
+      font-size:12px; padding:4px 8px; border-radius:999px;
+      border:1px solid var(--line); color:var(--muted);
+      white-space:nowrap;
+    }
+    .badge.good{border-color:rgba(34,197,94,.55); color:#b7f7cc}
+    .badge.bad{border-color:rgba(239,68,68,.55); color:#ffd0d0}
+    .badge.info{border-color:rgba(53,80,127,.75); color:#cfe1ff}
+
+    /* Map */
+    .mapwrap{padding:10px; background:rgba(15,23,42,.55); border:1px solid var(--line); border-radius:16px}
+    svg{width:100%; height:auto; display:block}
+    .nl{fill:var(--mapFill); stroke:var(--mapStroke); stroke-width:3}
+    .cap-dot{fill:#94a3b8; stroke:#0b1220; stroke-width:2; cursor:pointer}
+    .cap-dot:hover{filter:brightness(1.15)}
+    .cap-label{fill:#a8b3c9; font-size:14px}
+    .cap-dot.good{fill:var(--good)}
+    .cap-dot.bad{fill:var(--bad)}
+    .cap-dot.target{stroke:#e6eefc; stroke-width:3}
+
+    .footer{color:var(--muted); font-size:12px; margin-top:12px; line-height:1.5}
+
+    /* “Mooie provinciekaart”-stijl (nu: nettere look; later echte SVG kaart) */
+    body.pretty{
+      --mapFill:#0c1830;
+      --mapStroke:#3a5a8f;
+      --line:#2a3f66;
+      --accent:#4b74b7;
+    }
+
+    /* Keuze-minuutje modal */
+    .modalBack{
+      position:fixed; inset:0; background:rgba(0,0,0,.55);
+      display:none; align-items:center; justify-content:center;
+      padding:18px; z-index:99;
+    }
+    .modalBack.show{display:flex}
+    .modal{
+      width:min(780px, 100%);
+      background:rgba(17,27,46,.98);
+      border:1px solid var(--line);
+      border-radius:18px;
+      padding:16px;
+      box-shadow: 0 20px 60px rgba(0,0,0,.4);
+    }
+    .modal h2{margin:0 0 6px 0; font-size:18px}
+    .modal p{margin:0 0 12px 0; color:var(--muted); font-size:13px; line-height:1.4}
+    .optGrid{display:grid; grid-template-columns:1fr 1fr; gap:12px}
+    @media (max-width: 700px){ .optGrid{grid-template-columns:1fr} }
+    .box{
+      border:1px solid var(--line);
+      background:rgba(15,23,42,.6);
+      border-radius:16px;
+      padding:12px;
+    }
+    .box h3{margin:0 0 8px 0; font-size:14px}
+    .box label{display:flex; gap:10px; align-items:flex-start; margin:8px 0; cursor:pointer}
+    .box input{margin-top:2px}
+    .muted{color:var(--muted); font-size:12px; line-height:1.4}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Topografie – Leerpad (Groep 6)</h1>
+    <p class="sub">
+      Eerst kies je een leerpad en kaartstijl. Daarna oefen je in volgorde:
+      <strong>hoofdsteden</strong> → <strong>provincies</strong> → <strong>grote steden</strong> → <strong>water/rivieren</strong> → <strong>foutenronde</strong>.
+    </p>
+
+    <div class="grid">
+      <div class="card">
+        <div class="row" style="justify-content:space-between">
+          <div class="tabs">
+            <button class="tab active" id="tab-learn"  onclick="setMode('learn')">1. Leren</button>
+            <button class="tab" id="tab-practice" onclick="setMode('practice')">2. Zelftoets</button>
+            <button class="tab" id="tab-test"     onclick="setMode('test')">3. Eindtoets</button>
+            <button class="tab" id="tab-mix"      onclick="openChooser()">Keuze-minuutje</button>
+          </div>
+          <div class="pill"><span class="dot neu"></span> Klik op de stippen op de kaart</div>
+        </div>
+
+        <div style="margin-top:12px">
+          <div class="prompt" id="prompt">Klik op “Keuze-minuutje” en daarna op “Start leerpad”.</div>
+          <p class="hint" id="hint">Tip: begin met Hoofdsteden, daarna Provincies.</p>
+
+          <div class="mapwrap">
+            <!-- Schematische NL-kaart (niet geografisch exact; bedoeld als oefenkaart met klikpunten) -->
+            <svg viewBox="0 0 700 760" aria-label="Kaart van Nederland met klikpunten">
+              <path class="nl" d="M223,85
+                C180,120 165,160 162,200
+                C158,250 130,285 135,330
+                C142,385 190,405 205,450
+                C215,485 180,510 170,545
+                C158,585 185,620 220,640
+                C265,666 290,695 330,705
+                C380,718 415,695 450,670
+                C490,645 530,650 565,620
+                C600,590 618,560 612,515
+                C605,465 645,435 645,395
+                C645,340 610,315 590,280
+                C570,245 585,215 560,185
+                C535,155 490,165 465,135
+                C435,100 400,95 365,90
+                C320,83 275,55 223,85 Z" />
+              <g id="dots"></g>
+              <g id="labels"></g>
+            </svg>
+          </div>
+
+          <div class="feedback" id="feedback"></div>
+
+          <div class="btnrow">
+            <button class="primary" onclick="openChooser()">Keuze-minuutje</button>
+            <button class="primary" onclick="startPath()">Start leerpad</button>
+            <button onclick="next()">Volgende</button>
+            <button class="ghost" onclick="toggleMistakesOnly()" id="mistBtn">Foutenronde: uit</button>
+            <button class="danger" onclick="resetAll()">Opnieuw</button>
+          </div>
+
+          <div class="footer">
+            <div><strong>Kaartstijl:</strong> je kunt kiezen tussen schematisch en “mooie provinciekaart”-stijl. Later kunnen we dit vervangen door een echte SVG-kaart met provincievlakken.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="scorebox">
+          <div class="bigscore">
+            <div class="n" id="scoreMain">—</div>
+            <div class="t" id="scoreSub">Nog niet gestart</div>
+          </div>
+
+          <div class="row" style="justify-content:space-between; align-items:end">
+            <div style="font-weight:900">Overzicht</div>
+            <div class="small" id="progress">—</div>
+          </div>
+          <ul class="list" id="review"></ul>
+
+          <div class="footer">
+            Uitbreiden met extra steden/wateren kan door de datasets aan te vullen. De foutenronde werkt dan automatisch mee.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Keuze-minuutje -->
+  <div class="modalBack" id="modalBack" role="dialog" aria-modal="true" aria-label="Keuze-minuutje">
+    <div class="modal">
+      <h2>Keuze-minuutje</h2>
+      <p>Kies wat je wilt oefenen en in welke volgorde. Kies ook de kaartstijl. Daarna klik je op “Start leerpad”.</p>
+
+      <div class="optGrid">
+        <div class="box">
+          <h3>Leerpad (volgorde)</h3>
+          <label><input type="radio" name="path" value="standard" checked>
+            <div>
+              <div><strong>Standaard leerpad</strong></div>
+              <div class="muted">Hoofdsteden → Provincies → Grote steden → Water/rivieren → Foutenronde</div>
+            </div>
+          </label>
+          <label><input type="radio" name="path" value="capitalsOnly">
+            <div>
+              <div><strong>Alleen hoofdsteden</strong></div>
+              <div class="muted">Handig als start of snelle herhaling</div>
+            </div>
+          </label>
+          <label><input type="radio" name="path" value="custom">
+            <div>
+              <div><strong>Zelf kiezen (aan/uit)</strong></div>
+              <div class="muted">Gebruik de vinkjes rechts om onderdelen aan/uit te zetten</div>
+            </div>
+          </label>
+        </div>
+
+        <div class="box">
+          <h3>Onderdelen (aan/uit)</h3>
+          <label><input type="checkbox" id="chkCaps" checked> <div><strong>Hoofdsteden</strong> <span class="badge info">nu compleet</span></div></label>
+          <label><input type="checkbox" id="chkProv" checked> <div><strong>Provincies</strong> <span class="badge info">basis klaar</span></div></label>
+          <label><input type="checkbox" id="chkCities" checked> <div><strong>Grote steden per provincie</strong> <span class="badge info">voorbeeldset</span></div></label>
+          <label><input type="checkbox" id="chkWater" checked> <div><strong>Water/rivieren</strong> <span class="badge info">voorbeeldset</span></div></label>
+          <label><input type="checkbox" id="chkMist" checked> <div><strong>Foutenronde</strong> <span class="badge info">automatisch</span></div></label>
+
+          <hr style="border:0; border-top:1px solid rgba(34,48,77,.7); margin:12px 0">
+
+          <h3>Kaartstijl</h3>
+          <label><input type="radio" name="mapstyle" value="schematic" checked>
+            <div>
+              <div><strong>Schematische oefenkaart</strong></div>
+              <div class="muted">Eenvoudig, snel, kindvriendelijk</div>
+            </div>
+          </label>
+          <label><input type="radio" name="mapstyle" value="pretty">
+            <div>
+              <div><strong>“Mooie provinciekaart”</strong></div>
+              <div class="muted">Nettere stijl nu; later echte provincies-SVG inplugbaar</div>
+            </div>
+          </label>
+        </div>
+      </div>
+
+      <div class="btnrow" style="justify-content:flex-end; margin-top:14px">
+        <button class="ghost" onclick="closeChooser()">Sluiten</button>
+        <button class="primary" onclick="applyChooser()">Toepassen</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+  /***********************
+   * DATASETS (uitbreidbaar)
+   ***********************/
+
+  // Hoofdsteden provincies
+  const CAPITALS = [
+    { key:"cap_groningen", prov:"Groningen",     label:"Groningen",        x:505, y:155 },
+    { key:"cap_friesland", prov:"Friesland",     label:"Leeuwarden",       x:350, y:185 },
+    { key:"cap_drenthe",   prov:"Drenthe",       label:"Assen",            x:460, y:220 },
+    { key:"cap_overijs",   prov:"Overijssel",    label:"Zwolle",           x:470, y:305 },
+    { key:"cap_flevo",     prov:"Flevoland",     label:"Lelystad",         x:380, y:300 },
+    { key:"cap_gelder",    prov:"Gelderland",    label:"Arnhem",           x:455, y:405 },
+    { key:"cap_utrecht",   prov:"Utrecht",       label:"Utrecht",          x:345, y:390 },
+    { key:"cap_nh",        prov:"Noord-Holland", label:"Haarlem",          x:250, y:300 },
+    { key:"cap_zh",        prov:"Zuid-Holland",  label:"Den Haag",         x:245, y:390 },
+    { key:"cap_zeeland",   prov:"Zeeland",       label:"Middelburg",       x:170, y:505 },
+    { key:"cap_nb",        prov:"Noord-Brabant", label:"’s-Hertogenbosch", x:330, y:510 },
+    { key:"cap_limb",      prov:"Limburg",       label:"Maastricht",       x:455, y:645 },
+  ];
+
+  // Provincies (voor nu via “ankerpunten”; later echte provincievlakken)
+  const PROVINCES = CAPITALS.map(c => ({
+    key:"prov_" + c.prov.toLowerCase().replaceAll(" ","-"),
+    label:c.prov,
+    x:c.x, y:c.y
+  }));
+
+  // Grote steden (voorbeeldset; uitbreidbaar)
+  const CITIES = [
+    { key:"city_ams", label:"Amsterdam", group:"Noord-Holland",  x:275, y:320 },
+    { key:"city_rot", label:"Rotterdam", group:"Zuid-Holland",   x:265, y:420 },
+    { key:"city_ut",  label:"Utrecht",   group:"Utrecht",       x:345, y:390 },
+    { key:"city_ein", label:"Eindhoven", group:"Noord-Brabant", x:350, y:560 },
+    { key:"city_gr",  label:"Groningen", group:"Groningen",     x:505, y:155 },
+    { key:"city_mst", label:"Maastricht",group:"Limburg",       x:455, y:645 },
+    { key:"city_zw",  label:"Zwolle",    group:"Overijssel",    x:470, y:305 },
+    { key:"city_lee", label:"Leeuwarden",group:"Friesland",     x:350, y:185 },
+    { key:"city_arn", label:"Arnhem",    group:"Gelderland",    x:455, y:405 },
+    { key:"city_mid", label:"Middelburg",group:"Zeeland",       x:170, y:505 },
+  ];
+
+  // Water/rivieren (voorbeeldset; uitbreidbaar)
+  const WATER = [
+    { key:"w_ijsselmeer", label:"IJsselmeer", x:360, y:260 },
+    { key:"w_waddenzee",  label:"Waddenzee",  x:320, y:140 },
+    { key:"w_rijn",       label:"Rijn",       x:315, y:450 },
+    { key:"w_maas",       label:"Maas",       x:330, y:590 },
+    { key:"w_schelde",    label:"Schelde",    x:160, y:560 },
+  ];
+
+  /***********************
+   * MODULES & DEFAULT PAD
+   ***********************/
+  const MODULES = {
+    capitals: { id:"capitals",  title:"Hoofdsteden",    dataset:CAPITALS },
+    provinces:{ id:"provinces", title:"Provincies",     dataset:PROVINCES },
+    cities:   { id:"cities",    title:"Grote steden",   dataset:CITIES },
+    water:    { id:"water",     title:"Water/rivieren", dataset:WATER },
+  };
+
+  let enableModules = { capitals:true, provinces:true, cities:true, water:true, mistakes:true };
+  let pathPlan = ["capitals","provinces","cities","water","mistakes"];
+  let mapStyle = "schematic"; // schematic | pretty
+
+  /***********************
+   * QUIZ STATE
+   ***********************/
+  let mode = "learn";               // learn | practice | test
+  let started = false;
+  let pathStep = 0;                 // index in pathPlan
+  let moduleId = "capitals";
+  let order = [];
+  let idx = -1;
+
+  let correct = 0;
+  let total = 0;
+
+  // Global answers across modules: used for mistakes (and review)
+  // {moduleId, key, questionText, ok, pickedLabel, correctLabel}
+  let answers = [];
+
+  // Mistakes-only toggle (per module during normal run)
+  let mistakesOnly = false;
+
+  // Mistakes round queue (end-of-path)
+  let mistakeQueue = [];
+  let mistakeIdx = 0;
+
+  /***********************
+   * UI REFS
+   ***********************/
+  const dotsG = document.getElementById("dots");
+  const labelsG = document.getElementById("labels");
+  const promptEl = document.getElementById("prompt");
+  const hintEl = document.getElementById("hint");
+  const feedbackEl = document.getElementById("feedback");
+  const scoreMainEl = document.getElementById("scoreMain");
+  const scoreSubEl = document.getElementById("scoreSub");
+  const reviewEl = document.getElementById("review");
+  const progressEl = document.getElementById("progress");
+  const mistBtn = document.getElementById("mistBtn");
+
+  const modalBack = document.getElementById("modalBack");
+  const chkCaps = document.getElementById("chkCaps");
+  const chkProv = document.getElementById("chkProv");
+  const chkCities = document.getElementById("chkCities");
+  const chkWater = document.getElementById("chkWater");
+  const chkMist = document.getElementById("chkMist");
+
+  /***********************
+   * HELPERS
+   ***********************/
+  function shuffle(arr){
+    const a = arr.slice();
+    for(let i=a.length-1;i>0;i--){
+      const j = Math.floor(Math.random()*(i+1));
+      [a[i],a[j]]=[a[j],a[i]];
+    }
+    return a;
+  }
+
+  function setFeedback(msg, type=null){
+    feedbackEl.classList.remove("good","bad");
+    if(type==="good") feedbackEl.classList.add("good");
+    if(type==="bad") feedbackEl.classList.add("bad");
+    feedbackEl.textContent = msg || "";
+  }
+
+  function clearDotClasses(){
+    [...dotsG.children].forEach(el=>{
+      el.classList.remove("good","bad","target");
+    });
+  }
+  function clearLabels(){
+    [...labelsG.children].forEach(t => t.textContent = "");
+  }
+  function setLabelByIndex(i, text){
+    const t = [...labelsG.children].find(x => x.dataset.index === String(i));
+    if(t) t.textContent = text || "";
+  }
+
+  function renderPlanHint(){
+    const parts = pathPlan.map(p => p==="mistakes" ? "Foutenronde" : MODULES[p].title);
+    hintEl.textContent = `Leerpad: ${parts.join(" → ")}. Kaartstijl: ${mapStyle === "pretty" ? "Mooie (stijl)" : "Schematisch"}.`;
+  }
+
+  function renderScore(){
+    if(!started){
+      scoreMainEl.textContent = "—";
+      scoreSubEl.textContent = "Nog niet gestart";
+      return;
+    }
+    if(mode==="learn"){
+      scoreMainEl.textContent = "—";
+      scoreSubEl.textContent = "Leren: geen score";
+      return;
+    }
+    scoreMainEl.textContent = `${correct}/${total}`;
+    const pct = total ? Math.round((correct/total)*100) : 0;
+    scoreSubEl.textContent = `Score: ${pct}%`;
+  }
+
+  function renderReview(){
+    reviewEl.innerHTML = "";
+    const items = answers.slice().reverse();
+    if(items.length === 0){
+      const li = document.createElement("li");
+      li.innerHTML = `<span style="color:#a8b3c9">Nog geen antwoorden.</span><span class="badge">—</span>`;
+      reviewEl.appendChild(li);
+      return;
+    }
+
+    items.slice(0, 200).forEach(a => {
+      const li = document.createElement("li");
+      const left = document.createElement("div");
+      const modTitle = (a.moduleId === "mistakes") ? "Foutenronde" : (MODULES[a.moduleId]?.title ?? a.moduleId);
+      left.innerHTML = `<strong>${modTitle}</strong><div class="small">${a.questionText} — correct: ${a.correctLabel}</div>`;
+      const right = document.createElement("div");
+      const badge = document.createElement("span");
+      badge.classList.add("badge");
+      if(a.ok){ badge.classList.add("good"); badge.textContent = "Goed"; }
+      else { badge.classList.add("bad"); badge.textContent = "Fout"; }
+      right.appendChild(badge);
+      li.appendChild(left);
+      li.appendChild(right);
+      reviewEl.appendChild(li);
+    });
+  }
+
+  function setMode(m){
+    mode = m;
+    document.getElementById("tab-learn").classList.toggle("active", m==="learn");
+    document.getElementById("tab-practice").classList.toggle("active", m==="practice");
+    document.getElementById("tab-test").classList.toggle("active", m==="test");
+
+    if(m==="learn"){
+      setFeedback("Leren: je ziet het antwoord. Klik op Volgende om door te gaan.", null);
+    } else if(m==="practice"){
+      setFeedback("Zelftoets: je krijgt direct groen/rood feedback.", null);
+    } else {
+      setFeedback("Eindtoets: geen feedback per vraag. Score pas aan het eind.", null);
+    }
+    renderScore();
+  }
+
+  /***********************
+   * MODAL (KEUZE-MINUUTJE)
+   ***********************/
+  function openChooser(){
+    chkCaps.checked = !!enableModules.capitals;
+    chkProv.checked = !!enableModules.provinces;
+    chkCities.checked = !!enableModules.cities;
+    chkWater.checked = !!enableModules.water;
+    chkMist.checked = !!enableModules.mistakes;
+    modalBack.classList.add("show");
+  }
+  function closeChooser(){
+    modalBack.classList.remove("show");
+  }
+
+  function applyChooser(){
+    // path selection
+    const pathChoice = document.querySelector("input[name='path']:checked")?.value || "standard";
+    const styleChoice = document.querySelector("input[name='mapstyle']:checked")?.value || "schematic";
+
+    enableModules = {
+      capitals: chkCaps.checked,
+      provinces: chkProv.checked,
+      cities: chkCities.checked,
+      water: chkWater.checked,
+      mistakes: chkMist.checked,
+    };
+
+    if(pathChoice === "capitalsOnly"){
+      pathPlan = ["capitals"];
+      if(enableModules.mistakes) pathPlan.push("mistakes");
+    } else if(pathChoice === "custom"){
+      pathPlan = [];
+      if(enableModules.capitals)  pathPlan.push("capitals");
+      if(enableModules.provinces) pathPlan.push("provinces");
+      if(enableModules.cities)    pathPlan.push("cities");
+      if(enableModules.water)     pathPlan.push("water");
+      if(enableModules.mistakes)  pathPlan.push("mistakes");
+      if(pathPlan.length === 0){
+        // fallback
+        enableModules.capitals = true;
+        pathPlan = ["capitals"];
+      }
+    } else {
+      // standard
+      pathPlan = ["capitals","provinces","cities","water"];
+      pathPlan = pathPlan.filter(x => enableModules[x]);
+      if(enableModules.mistakes) pathPlan.push("mistakes");
+      if(pathPlan.length === 0){
+        enableModules.capitals = true;
+        pathPlan = ["capitals"];
+      }
+    }
+
+    mapStyle = styleChoice;
+    document.body.classList.toggle("pretty", mapStyle === "pretty");
+
+    closeChooser();
+    renderPlanHint();
+    setFeedback("Keuze toegepast. Klik op “Start leerpad”.", "good");
+  }
+
+  /***********************
+   * MAP RENDERING
+   ***********************/
+  function renderDots(dataset){
+    dotsG.innerHTML = "";
+    labelsG.innerHTML = "";
+
+    dataset.forEach((item, i) => {
+      const circle = document.createElementNS("http://www.w3.org/2000/svg","circle");
+      circle.setAttribute("cx", item.x);
+      circle.setAttribute("cy", item.y);
+      circle.setAttribute("r", 10);
+      circle.classList.add("cap-dot");
+      circle.dataset.index = String(i);
+      circle.addEventListener("click", () => onPick(i));
+      dotsG.appendChild(circle);
+
+      const label = document.createElementNS("http://www.w3.org/2000/svg","text");
+      label.setAttribute("x", item.x + 14);
+      label.setAttribute("y", item.y + 5);
+      label.classList.add("cap-label");
+      label.textContent = "";
+      label.dataset.index = String(i);
+      labelsG.appendChild(label);
+    });
+  }
+
+  /***********************
+   * QUESTIONS
+   ***********************/
+  function makePrompt(mod, item){
+    if(mod.id === "capitals"){
+      return (mode==="learn")
+        ? `Leren (Hoofdsteden): ${item.label} is de hoofdstad van ${item.prov}`
+        : `Klik op de hoofdstad van: ${item.prov}`;
+    }
+    if(mod.id === "provinces"){
+      return (mode==="learn")
+        ? `Leren (Provincies): dit is de provincie ${item.label}`
+        : `Klik op de provincie: ${item.label}`;
+    }
+    if(mod.id === "cities"){
+      return (mode==="learn")
+        ? `Leren (Grote steden): ${item.label} (provincie: ${item.group})`
+        : `Klik op de stad: ${item.label} (provincie: ${item.group})`;
+    }
+    if(mod.id === "water"){
+      return (mode==="learn")
+        ? `Leren (Water/rivieren): ${item.label} ligt hier`
+        : `Klik op: ${item.label}`;
+    }
+    return `Klik op: ${item.label}`;
+  }
+
+  function makeQuestionText(mod, item){
+    if(mod.id === "capitals")  return `Hoofdstad van ${item.prov}`;
+    if(mod.id === "provinces") return `Provincie: ${item.label}`;
+    if(mod.id === "cities")    return `Stad: ${item.label}`;
+    if(mod.id === "water")     return `Water: ${item.label}`;
+    return item.label;
+  }
+
+  /***********************
+   * RUN CONTROL (LEERPAD)
+   ***********************/
+  function resetAll(){
+    started = false;
+    pathStep = 0;
+    moduleId = "capitals";
+    idx = -1;
+    order = [];
+    correct = 0;
+    total = 0;
+    answers = [];
+    mistakeQueue = [];
+    mistakeIdx = 0;
+    mistakesOnly = false;
+    mistBtn.textContent = "Foutenronde: uit";
+
+    clearDotClasses();
+    clearLabels();
+    renderDots(MODULES.capitals.dataset);
+    renderScore();
+    renderReview();
+    progressEl.textContent = "—";
+    promptEl.textContent = "Klik op “Keuze-minuutje” en daarna op “Start leerpad”.";
+    setFeedback("", null);
+    renderPlanHint();
+  }
+
+  function toggleMistakesOnly(){
+    mistakesOnly = !mistakesOnly;
+    mistBtn.textContent = mistakesOnly ? "Foutenronde: aan" : "Foutenronde: uit";
+    setFeedback(mistakesOnly
+      ? "Foutenronde aan (per onderdeel): je krijgt alleen vragen die eerder fout gingen in dat onderdeel."
+      : "Foutenronde uit.", null);
+  }
+
+  function startPath(){
+    if(!pathPlan || pathPlan.length === 0){
+      setFeedback("Geen leerpad gekozen. Klik op “Keuze-minuutje”.", "bad");
+      return;
+    }
+
+    started = true;
+    pathStep = 0;
+
+    // reset run totals
+    correct = 0;
+    total = 0;
+    answers = [];
+    mistakeQueue = [];
+    mistakeIdx = 0;
+
+    setFeedback("", null);
+    runStep();
+  }
+
+  function runStep(){
+    if(pathStep >= pathPlan.length){
+      finishAll();
+      return;
+    }
+
+    const stepId = pathPlan[pathStep];
+
+    if(stepId === "mistakes"){
+      beginEndMistakesRound();
+      return;
+    }
+
+    moduleId = stepId;
+    beginModuleRound(MODULES[stepId]);
+  }
+
+  function beginModuleRound(mod){
+    const ds = mod.dataset;
+
+    // pool based on mistakesOnly toggle for this module
+    let poolIdxs = [...Array(ds.length).keys()];
+    if(mistakesOnly){
+      const wrongKeys = new Set(
+        answers.filter(a => a.moduleId === mod.id && a.ok === false).map(a => a.key)
+      );
+      const filtered = poolIdxs.filter(i => wrongKeys.has(ds[i].key));
+      if(filtered.length > 0) poolIdxs = filtered;
+    }
+
+    order = shuffle(poolIdxs);
+    idx = 0;
+
+    renderDots(ds);
+    clearDotClasses(); clearLabels();
+    setFeedback("", null);
+
+    nextQuestion();
+  }
+
+  function nextQuestion(){
+    const mod = MODULES[moduleId];
+    const ds = mod.dataset;
+
+    // module done -> advance
+    if(idx >= order.length){
+      pathStep += 1;
+      runStep();
+      return;
+    }
+
+    clearDotClasses();
+    clearLabels();
+
+    const qIndex = order[idx];
+    const item = ds[qIndex];
+
+    promptEl.textContent = makePrompt(mod, item);
+
+    const dot = [...dotsG.children].find(x => x.dataset.index === String(qIndex));
+    if(dot) dot.classList.add("target");
+
+    // Learn mode shows answer
+    if(mode==="learn"){
+      if(dot) dot.classList.add("good");
+      setLabelByIndex(qIndex, item.label);
+      setFeedback(`Onthoud dit: ${item.label}. Klik op Volgende.`, "good");
+    } else if(mode==="practice"){
+      setFeedback("", null);
+    } else {
+      setFeedback("Geen feedback nu. Aan het eind krijg je je score.", null);
+    }
+
+    progressEl.textContent = `${mod.title}: ${idx+1} van ${order.length}`;
+    renderScore();
+    renderReview();
+  }
+
+  function next(){
+    if(!started){
+      setFeedback("Klik op “Start leerpad”.", null);
+      return;
+    }
+
+    // If in end mistakes round
+    if(moduleId === "mistakes"){
+      // unanswered counts as wrong (practice/test)
+      if(mode!=="learn"){
+        const cur = mistakeQueue[mistakeIdx];
+        if(cur){
+          answers.push({
+            moduleId:"mistakes",
+            key:"redo_" + cur.key + "_" + mistakeIdx,
+            questionText: cur.questionText,
+            ok:false,
+            pickedLabel:"—",
+            correctLabel: cur.correctLabel
+          });
+          total += 1;
+        }
+      }
+      mistakeIdx += 1;
+      renderEndMistakeQuestion();
+      return;
+    }
+
+    // Normal module: unanswered counts as wrong (practice/test)
+    if(mode!=="learn"){
+      const mod = MODULES[moduleId];
+      const ds = mod.dataset;
+      const qIndex = order[idx];
+      const item = ds[qIndex];
+      const qText = makeQuestionText(mod, item);
+
+      const already = answers.some(a => a.moduleId === mod.id && a.key === item.key && a.questionText === qText);
+      if(!already){
+        answers.push({
+          moduleId: mod.id,
+          key: item.key,
+          questionText: qText,
+          ok:false,
+          pickedLabel:"—",
+          correctLabel:item.label
+        });
+        total += 1;
+      }
+    }
+
+    idx += 1;
+    nextQuestion();
+  }
+
+  /***********************
+   * ANSWER HANDLING
+   ***********************/
+  function onPick(pickedIndex){
+    if(!started){
+      setFeedback("Klik op “Start leerpad”.", null);
+      return;
+    }
+
+    // End mistakes round
+    if(moduleId === "mistakes"){
+      const cur = mistakeQueue[mistakeIdx];
+      if(!cur) return;
+
+      const ds = cur.datasetRef;
+      const correctIndex = cur.targetIndex;
+      const isCorrect = pickedIndex === correctIndex;
+
+      const pickedDot = [...dotsG.children].find(x => x.dataset.index === String(pickedIndex));
+      const correctDot = [...dotsG.children].find(x => x.dataset.index === String(correctIndex));
+
+      if(mode==="learn"){
+        if(correctDot) correctDot.classList.add("good");
+        setLabelByIndex(correctIndex, cur.correctLabel);
+        setFeedback("Kijk goed. Klik op Volgende.", "good");
+        return;
+      }
+
+      total += 1;
+      if(isCorrect) correct += 1;
+
+      if(mode==="practice"){
+        if(isCorrect){
+          if(pickedDot) pickedDot.classList.add("good");
+          setFeedback("Goed! Dit was de juiste plek.", "good");
+        } else {
+          if(pickedDot) pickedDot.classList.add("bad");
+          if(correctDot) correctDot.classList.add("good");
+          setLabelByIndex(correctIndex, cur.correctLabel);
+          setFeedback(`Bijna. Juist was: ${cur.correctLabel}.`, "bad");
+        }
+      }
+
+      answers.push({
+        moduleId:"mistakes",
+        key:"redo_" + cur.key + "_" + mistakeIdx,
+        questionText: cur.questionText,
+        ok:isCorrect,
+        pickedLabel: ds[pickedIndex]?.label ?? "—",
+        correctLabel: cur.correctLabel
+      });
+
+      renderScore();
+      renderReview();
+      return;
+    }
+
+    // Normal module
+    const mod = MODULES[moduleId];
+    const ds = mod.dataset;
+    const qIndex = order[idx];
+    const correctIndex = qIndex;
+    const correctItem = ds[correctIndex];
+    const qText = makeQuestionText(mod, correctItem);
+
+    // prevent double answer in practice/test
+    if(mode!=="learn" && answers.some(a => a.moduleId === mod.id && a.key === correctItem.key && a.questionText === qText)){
+      setFeedback("Deze vraag is al beantwoord. Klik op Volgende.", null);
+      return;
+    }
+
+    const isCorrect = pickedIndex === correctIndex;
+    const pickedDot = [...dotsG.children].find(x => x.dataset.index === String(pickedIndex));
+    const correctDot = [...dotsG.children].find(x => x.dataset.index === String(correctIndex));
+
+    if(mode==="learn"){
+      if(correctDot) correctDot.classList.add("good");
+      setLabelByIndex(correctIndex, correctItem.label);
+      setFeedback("Onthouden. Klik op Volgende.", "good");
+      return;
+    }
+
+    total += 1;
+    if(isCorrect) correct += 1;
+
+    if(mode==="practice"){
+      if(isCorrect){
+        if(pickedDot) pickedDot.classList.add("good");
+        setFeedback(`Goed! Antwoord: ${correctItem.label}.`, "good");
+      } else {
+        if(pickedDot) pickedDot.classList.add("bad");
+        if(correctDot) correctDot.classList.add("good");
+        setLabelByIndex(correctIndex, correctItem.label);
+        setFeedback(`Bijna. Juist was: ${correctItem.label}.`, "bad");
+      }
+    } else {
+      // test mode: no immediate feedback
+    }
+
+    answers.push({
+      moduleId: mod.id,
+      key: correctItem.key,
+      questionText: qText,
+      ok:isCorrect,
+      pickedLabel: ds[pickedIndex]?.label ?? "—",
+      correctLabel: correctItem.label
+    });
+
+    renderScore();
+    renderReview();
+  }
+
+  /***********************
+   * END-OF-PATH MISTAKES ROUND
+   ***********************/
+  function beginEndMistakesRound(){
+    const wrong = answers.filter(a => a.ok === false && a.moduleId !== "mistakes");
+    if(wrong.length === 0){
+      setFeedback("Foutenronde: geen fouten. We slaan dit onderdeel over.", "good");
+      pathStep += 1;
+      runStep();
+      return;
+    }
+
+    // Build queue referencing original datasets/targets
+    mistakeQueue = [];
+    for(const a of wrong){
+      const mod = MODULES[a.moduleId];
+      if(!mod) continue;
+      const ds = mod.dataset;
+      const targetIndex = ds.findIndex(x => x.key === a.key);
+      if(targetIndex < 0) continue;
+
+      mistakeQueue.push({
+        moduleId: a.moduleId,
+        dsTitle: mod.title,
+        datasetRef: ds,
+        targetIndex,
+        key: a.key,
+        questionText: a.questionText,
+        correctLabel: a.correctLabel
+      });
+    }
+    mistakeQueue = shuffle(mistakeQueue);
+    mistakeIdx = 0;
+    moduleId = "mistakes";
+
+    renderEndMistakeQuestion();
+  }
+
+  function renderEndMistakeQuestion(){
+    if(mistakeIdx >= mistakeQueue.length){
+      // done mistakes -> done path
+      pathStep += 1;
+      runStep();
+      return;
+    }
+
+    const cur = mistakeQueue[mistakeIdx];
+    renderDots(cur.datasetRef);
+    clearDotClasses(); clearLabels();
+
+    const dot = [...dotsG.children].find(x => x.dataset.index === String(cur.targetIndex));
+    if(dot) dot.classList.add("target");
+
+    promptEl.textContent = `Foutenronde (${cur.dsTitle}): ${cur.questionText}`;
+    progressEl.textContent = `Foutenronde: ${mistakeIdx+1} van ${mistakeQueue.length}`;
+
+    if(mode==="learn"){
+      if(dot) dot.classList.add("good");
+      setLabelByIndex(cur.targetIndex, cur.correctLabel);
+      setFeedback("Kijk goed. Klik op Volgende.", "good");
+    } else if(mode==="practice"){
+      setFeedback("Klik op de juiste plek. Je krijgt direct feedback.", null);
+    } else {
+      setFeedback("Geen feedback nu. Aan het eind krijg je je score.", null);
+    }
+
+    renderScore();
+    renderReview();
+  }
+
+  /***********************
+   * FINAL SUMMARY
+   ***********************/
+  function finishAll(){
+    const pct = total ? Math.round((correct/total)*100) : 0;
+    let verdict = "";
+    let type = null;
+    if(pct >= 80){ verdict = "Top gedaan!"; type = "good"; }
+    else if(pct >= 50){ verdict = "Goed geoefend!"; type = null; }
+    else { verdict = "Nog even oefenen."; type = "bad"; }
+
+    promptEl.textContent = `Leerpad klaar. Totaalscore: ${correct}/${total} (${pct}%).`;
+    setFeedback(verdict + "\nJe kunt nu opnieuw starten of een andere keuze maken via Keuze-minuutje.", type);
+    progressEl.textContent = "Leerpad: klaar";
+    renderScore();
+    renderReview();
+  }
+
+  /***********************
+   * INIT
+   ***********************/
+  renderDots(MODULES.capitals.dataset);
+  renderPlanHint();
+  renderScore();
+  renderReview();
+  setFeedback("Klik op “Keuze-minuutje” om je leerpad te kiezen, en daarna op “Start leerpad”.", null);
+
+</script>
+</body>
+</html>
